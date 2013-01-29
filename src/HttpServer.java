@@ -18,6 +18,7 @@ public class HttpServer{
 	int idCounter = 0;
 	boolean gotCookie = false;
 	String cookieHeader="";
+	int guess = -1;
 	
 	public static void main(String[] args) throws IOException{
 		new HttpServer().start();
@@ -33,14 +34,19 @@ public class HttpServer{
 			BufferedReader request = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			String str = request.readLine();
 			System.out.println(str);
-			StringTokenizer tokens = new StringTokenizer(str," ?");
-			tokens.nextToken(); // Ordet GET
-			String requestedDocument = tokens.nextToken();
-
-			while( (str = request.readLine()) != null && str.length() > 0){
+			if (str.contains("guess")){
+				int index = str.indexOf("=");
+				int guess = Integer.parseInt(str.substring(index+1, index+2));
+				System.out.println("guess: "+guess);
+			}
+//			StringTokenizer tokens = new StringTokenizer(str," ?");
+//			tokens.nextToken(); // Ordet GET
+//			String requestedDocument = tokens.nextToken();
+//			System.out.println("requested doc: " +requestedDocument);
+			
+			while((str = request.readLine()) != null && str.length() > 0){
 				if (str.contains("Cookie")){
 					gotCookie = true;
-					System.out.println("gotCookie= true");
 					cookieHeader = str;
 				}
 				System.out.println(str);
@@ -51,7 +57,9 @@ public class HttpServer{
 				idCounter++;
 				createCookie(s);		
 			}
-			else{respond(str,s);}
+			else{
+				respond(guess, cookieHeader,s);
+				}
 			
 
 		}
@@ -68,7 +76,7 @@ public class HttpServer{
 		Game newGame = new Game(idCounter);
 		games.add(newGame);
 		
-		File f = new File("intnet.txt");	//Filenotfound
+		File f = new File("C:/Users/Johanna/workspace/Iproglabb2/src/intnet.txt");	//Filenotfound
 		FileInputStream infil = new FileInputStream(f);
 		byte[] b = new byte[1024];
 		while( infil.available() > 0){
@@ -77,10 +85,19 @@ public class HttpServer{
 		infil.close();
 		s.shutdownOutput();
 		s.close();
+		System.out.println("Cookie created and sent.");
 	}
 	
 	//Responds to requests sent from users with active games.
-	public void respond(String cookie, Socket s) throws IOException{
+	public void respond(int guess,String cookie, Socket s) throws IOException{
+		
+		//getting the sessionID of the player
+		int index = cookie.indexOf("=");
+		int sessionID = Integer.parseInt(cookie.substring(index+1));
+		System.out.println("sessionID is: "+ sessionID);
+		
+		//get the game with the corresponding sessionID
+		
 		System.out.println("Responding to client...");
 		PrintStream response = new PrintStream(s.getOutputStream());
 		response.println("HTTP/1.1 200 OK");
@@ -90,7 +107,7 @@ public class HttpServer{
 		//använd sessionID för att hämta game, returnera htmlsida med olika svar beroende på gissning
 		
 		//om gissning rätt -> stäng connection och ta bort game
-		File f = new File("intnet.txt");	//Filenotfound
+		File f = new File("C:/Users/Johanna/workspace/Iproglabb2/src/intnet.txt");	//Filenotfound
 		FileInputStream infil = new FileInputStream(f);
 		byte[] b = new byte[1024];
 		while( infil.available() > 0){
@@ -106,7 +123,7 @@ public class HttpServer{
 		int sessionID;
 		int answer;
 		int guess;
-		Random r;
+		Random r = new Random();
 		String message;
 		public Game(int ID){
 			sessionID = ID;
