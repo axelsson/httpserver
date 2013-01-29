@@ -8,12 +8,3 @@ form.guess.focus()
 </head>
 
 <body onLoad="inputfocus(document.guessform);"> 
-
-Nope, guess lower<br>You have made 9 guess(es)<br>
-
-<form name="guessform">
-<input type=text name=guess>
-<input type=submit value="Guess">
-</form>
-
-</body></html>

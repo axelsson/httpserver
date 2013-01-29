@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,7 +15,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class HttpServer{
 
 //	HttpCookie cookie = new HttpCookie("ett","tva");
-	ConcurrentLinkedQueue<Game> games = new ConcurrentLinkedQueue<Game>();
+//	ConcurrentLinkedQueue<Game> games = new ConcurrentLinkedQueue<Game>();
+	ArrayList<Game> games = new ArrayList<Game>();
 	int idCounter = 0;
 	boolean gotCookie = false;
 	String cookieHeader="";
@@ -92,57 +94,80 @@ public class HttpServer{
 	public void respond(int guess,String cookie, Socket s) throws IOException{
 		
 		//getting the sessionID of the player
+		int answer;
+		Game game = null;
+		String state = null;
 		int index = cookie.indexOf("=");
 		int sessionID = Integer.parseInt(cookie.substring(index+1));
 		System.out.println("sessionID is: "+ sessionID);
-		
-		//get the game with the corresponding sessionID
+
+		for (Game current : games) {
+			if(current.getID()==sessionID){
+				answer = current.getAnswer();
+				game  = current;
+				state = getResult(answer, guess, current);
+			}
+		}
+		//använd sessionID för att hämta game, returnera htmlsida med olika svar beroende på gissning
 		
 		System.out.println("Responding to client...");
 		PrintStream response = new PrintStream(s.getOutputStream());
 		response.println("HTTP/1.1 200 OK");
 		response.println("Server : Johannas server");
 		response.println("Content-Type: text/html");
-		// läs in gissning?!
-		//använd sessionID för att hämta game, returnera htmlsida med olika svar beroende på gissning
+
 		
 		//om gissning rätt -> stäng connection och ta bort game
-		File f = new File("C:/Users/Johanna/workspace/Iproglabb2/src/intnet.txt");	//Filenotfound
+		File f = new File("C:/Users/Johanna/workspace/Iproglabb2/src/intnet.txt");
 		FileInputStream infil = new FileInputStream(f);
 		byte[] b = new byte[1024];
 		while( infil.available() > 0){
 			response.write(b,0,infil.read(b));
 		}
+		response.println(state+"\n You have made "+game.turn + " number of guess(es).");
 		infil.close();
 		s.shutdownOutput();
 		s.close();
 	}
+	
+	public String getResult(int answer, int guess, Game game){
+		String result = "Congratulations, you won!";		//win
+		if (answer > guess){//guess lower	
+			result = "Guess lower";
+			game.turn++;
+		}
+		else if(answer < guess){//guess higher
+			result = "Guess higher";
+			game.turn++;
+		}
+		else{
+			games.remove(game);
+		}
+		return result;
+	}
 
-
+	//class Game represents an ongoing game, storing sessionID and guess.
+//	skapa: skapa answer och sessionID
+//	spela:  hitta rätt game mha sessionID
+//			hämta answer
+//			om fel, uppdatera gissningar
 	private class Game{
 		int sessionID;
 		int answer;
-		int guess;
+		int turn = 0;
 		Random r = new Random();
 		String message;
 		public Game(int ID){
 			sessionID = ID;
 			answer = r.nextInt(101);
 		}
-		public int getID(int ID){
+		public int getID(){
 			return sessionID;
 		}
-		public String position(){
-			if (guess > answer){
-				message = "Guess higher!"; 
-			}
-			else if(guess == answer){
-				message = "You guessed the right number!";
-			}
-			else {message = "Guess lower!";}
-			return message;
-
+		public int getAnswer(){
+			return answer;
 		}
+
 
 	}
 }
