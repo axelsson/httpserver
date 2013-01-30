@@ -1,0 +1,19 @@
+<html>
+<head><title>Number Guess Game</title>
+<script type = "text/javascript">
+function inputfocus(form){
+form.guess.focus()
+}
+</script>
+</head>
+
+<body onLoad="inputfocus(document.guessform);" bgcolor="lime"> 
+
+Guess a number between 0-100!
+
+<form name="guessform">
+<input type=text name=guess>
+<input type=submit value="Guess">
+</form>
+
+</body></html>
