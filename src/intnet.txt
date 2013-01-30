@@ -7,4 +7,4 @@ form.guess.focus()
 </script>
 </head>
 
-<body onLoad="inputfocus(document.guessform);"> 
+<body onLoad="inputfocus(document.guessform);"bgcolor="lime"> 
